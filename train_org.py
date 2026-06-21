@@ -88,6 +88,16 @@ parser.add_argument('--position_embedding', default='sine', type=str, choices=('
 parser.add_argument('--hidden_dim', default=512, type=int,
                         help="Size of the embeddings (dimension of the transformer)")
 args = parser.parse_args()
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda:0" if USE_CUDA else "cpu")
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+print("device:", device)
+os.makedirs(args.save_dir, exist_ok=True)
+os.makedirs(args.log_dir, exist_ok=True)
+os.makedirs(f"{args.save_dir}/test", exist_ok=True)
+print("CUDA device count:", torch.cuda.device_count())
+print("CUDA visible devices:", os.environ.get("CUDA_VISIBLE_DEVICES"))
 
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda:0" if USE_CUDA else "cpu")
@@ -112,7 +122,7 @@ with torch.no_grad():
 network.train()
 
 network.to(device)
-network = nn.DataParallel(network, device_ids=[0,1])
+network = nn.DataParallel(network)
 content_tf = train_transform()
 style_tf = train_transform()
 
