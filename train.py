@@ -9,7 +9,7 @@ from torchvision import transforms
 from tqdm import tqdm
 import pathlib
 import models.transformer as transformer
-import models.StyTRv2 as StyTR
+import models.StyTR as StyTR
 from models.discriminator import Discriminator
 from sampler import InfiniteSamplerWrapper
 from torchvision.utils import save_image

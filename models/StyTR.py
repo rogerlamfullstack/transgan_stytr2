@@ -10,6 +10,7 @@ from function import normal,normal_style
 from function import calc_mean_std
 import scipy.stats as stats
 from models.ViT_helper import DropPath, to_2tuple, trunc_normal_
+import torchvision
 
 class PatchEmbed(nn.Module):
     """ Image to Patch Embedding
@@ -156,6 +157,9 @@ class StyTrans(nn.Module):
         hidden_dim = transformer.d_model       
         self.decode = decoder
         self.embedding = PatchEmbed
+        self.vgg = encoder
+        self.args = args
+        
 
     def encode_with_intermediate(self, input):
         results = [input]
