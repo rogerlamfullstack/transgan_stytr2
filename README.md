@@ -1,7 +1,7 @@
 Adversarial Transformer Networks for High-Fidelity Image Style Transfer
 Authors: [TUNG-THIEN LAM](https://github.com/rogerlamfullstack), NAEEM UL ISLAM, CHENG-ZEN YANG
 
-## Experiment
+# Experiment
 ### Requirements
 * python 3.10
 * pytorch 2.1.2
