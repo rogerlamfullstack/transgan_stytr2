@@ -2,3 +2,4 @@ pretrain/
 *.pth
 __pycache__/
 input/
+logs

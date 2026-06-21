@@ -8,14 +8,9 @@ from os.path import basename
 from os.path import splitext
 from torchvision import transforms
 from torchvision.utils import save_image
-from function import calc_mean_std, normal, coral
 import models.transformer as transformer
 import models.StyTR as StyTR
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from function import normal
 import numpy as np
-import time
 import logging
 
 logging.basicConfig(
@@ -34,9 +29,6 @@ def test_transform(size, crop):
     transform = transforms.Compose(transform_list)
     return transform
 def style_transform(h,w):
-    k = (h,w)
-    size = int(np.max(k))
-    print(type(size))
     transform_list = []    
     transform_list.append(transforms.CenterCrop((h,w)))
     transform_list.append(transforms.ToTensor())
@@ -79,8 +71,6 @@ parser.add_argument('--position_embedding', default='sine', type=str, choices=('
 parser.add_argument('--hidden_dim', default=512, type=int,
                         help="Size of the embeddings (dimension of the transformer)")
 args = parser.parse_args()
-
-
 
 
 # Advanced options
@@ -155,9 +145,6 @@ network = StyTR.StyTrans(vgg,decoder,embedding,Trans,args)
 network.eval()
 network.to(device)
 
-
-logging.info("this is the loss for original stytr2 + single gan step 0")
-
 content_tf = test_transform(content_size, crop)
 style_tf = test_transform(style_size, crop)
 
@@ -187,14 +174,11 @@ for content_path in content_paths:
                     l_identity2.sum().cpu().detach().numpy()
                 )
             )
-            # print(f"{i}/ 800")
-            # output = output.cuda()
-            # output = output
-
         output_name = '{:s}/{:s}_stylized_{:s}{:s}'.format(
             output_path, splitext(basename(content_path))[0],
             splitext(basename(style_path))[0], save_ext
         )
  
-        # save_image(output, output_name)
+        save_image(output, output_name)
+        print(f"Output: {output_name}")
    

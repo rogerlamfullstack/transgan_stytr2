@@ -5,29 +5,44 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from os.path import basename
-from os.path import splitext
 from torchvision import transforms
-from torchvision.utils import save_image
-from function import calc_mean_std, normal, coral
 import models.transformer as transformer
 import models.StyTR as StyTR
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from function import normal
 import numpy as np
-import time
-import logging
 import lpips
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 import pandas as pd
 
-prefix = "original_stytr2_01"
-logging.basicConfig(
-    filename=f"test_single_gan_{prefix}_loss_metrics.log",
-    level=logging.INFO,                     # Set the log level
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
-)
+parser = argparse.ArgumentParser()
+# Basic options
+parser.add_argument('prefix', help="Start of names for files produced.")
+parser.add_argument('--content', type=str,
+                    help='File path to the content image')
+parser.add_argument('--content_dir', type=str,
+                    help='Directory path to a batch of content images')
+parser.add_argument('--style', type=str,
+                    help='File path to the style image, or multiple style \
+                    images separated by commas if you want to do style \
+                    interpolation or spatial control')
+parser.add_argument('--style_dir', type=str,
+                    help='Directory path to a batch of style images')
+parser.add_argument('--output', type=str, default='metrics',
+                    help='Directory to save the output metrics')
+parser.add_argument('--vgg', type=str, default='./experiments/vgg_normalised.pth')
+parser.add_argument('--decoder_path', type=str, default=f'output2/original_stytr2_01/decoder_iter_160000.pth')
+parser.add_argument('--Trans_path', type=str, default=f'output2/original_stytr2_01/transformer_iter_160000.pth')
+parser.add_argument('--embedding_path', type=str, default=f'output2/original_stytr2_01/embedding_iter_160000.pth')
+
+
+parser.add_argument('--style_interpolation_weights', type=str, default="")
+parser.add_argument('--a', type=float, default=1.0)
+parser.add_argument('--position_embedding', default='sine', type=str, choices=('sine', 'learned'),
+                        help="Type of positional embedding to use on top of the image features")
+parser.add_argument('--hidden_dim', default=512, type=int,
+                        help="Size of the embeddings (dimension of the transformer)")
+args = parser.parse_args()
+
 def test_transform(size, crop):
     transform_list = []
    
@@ -55,39 +70,6 @@ def content_transform():
     transform = transforms.Compose(transform_list)
     return transform
 
-  
-
-parser = argparse.ArgumentParser()
-# Basic options
-parser.add_argument('--content', type=str,
-                    help='File path to the content image')
-parser.add_argument('--content_dir', type=str,
-                    help='Directory path to a batch of content images')
-parser.add_argument('--style', type=str,
-                    help='File path to the style image, or multiple style \
-                    images separated by commas if you want to do style \
-                    interpolation or spatial control')
-parser.add_argument('--style_dir', type=str,
-                    help='Directory path to a batch of style images')
-parser.add_argument('--output', type=str, default='output',
-                    help='Directory to save the output image(s)')
-parser.add_argument('--vgg', type=str, default='./experiments/vgg_normalised.pth')
-parser.add_argument('--decoder_path', type=str, default=f'output2/original_stytr2_01/decoder_iter_160000.pth')
-parser.add_argument('--Trans_path', type=str, default=f'output2/original_stytr2_01/transformer_iter_160000.pth')
-parser.add_argument('--embedding_path', type=str, default=f'output2/original_stytr2_01/embedding_iter_160000.pth')
-
-
-parser.add_argument('--style_interpolation_weights', type=str, default="")
-parser.add_argument('--a', type=float, default=1.0)
-parser.add_argument('--position_embedding', default='sine', type=str, choices=('sine', 'learned'),
-                        help="Type of positional embedding to use on top of the image features")
-parser.add_argument('--hidden_dim', default=512, type=int,
-                        help="Size of the embeddings (dimension of the transformer)")
-args = parser.parse_args()
-
-
-
-
 # Advanced options
 content_size=512
 style_size=512
@@ -96,9 +78,6 @@ save_ext='.jpg'
 output_path=args.output
 preserve_color='store_true'
 alpha=args.a
-
-
-
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -160,13 +139,8 @@ network = StyTR.StyTrans(vgg,decoder,embedding,Trans,args)
 network.eval()
 network.to(device)
 
-
-logging.info("this is the loss for original stytr2 + single gan step 0")
-
 content_tf = test_transform(content_size, crop)
 style_tf = test_transform(style_size, crop)
-
-print("size content/ style",len(content_paths), len(style_paths))
 lpips_loss_fn = lpips.LPIPS(net='alex').to(device)
 
 # Prepare a DataFrame to store results
@@ -219,5 +193,6 @@ for content_path in content_paths:
 df_results = pd.DataFrame(results)
 
 # Save results
-df_results.to_csv(f"evaluation_metrics_{prefix}.csv", index=False)
+df_results.to_csv(f"metrics/evaluation_metrics_{args.prefix}.csv", index=False)
 print(df_results.head())
+print(f"Saved at: metrics/evaluation_metrics_{args.prefix}.csv")

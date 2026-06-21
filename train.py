@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('prefix', help="Start of names for files produced.")
 parser.add_argument('--content_dir', default='./datasets/train2014', type=str)
 parser.add_argument('--style_dir', default='./datasets/style', type=str)
-parser.add_argument('--vgg', type=str, default='./experiments/vgg_normalised.pth')
+parser.add_argument('--vgg', type=str, default='./pretrain/vgg_normalised.pth')
 parser.add_argument('--save_dir', default='./experiments', type=str)
 parser.add_argument('--log_dir', default='./logs', type=str)
 parser.add_argument('--lr', type=float, default=5e-4)
@@ -33,6 +33,7 @@ parser.add_argument('--n_threads', type=int, default=6)
 parser.add_argument('--save_model_interval', type=int, default=10000)
 parser.add_argument('--position_embedding', default='sine', choices=('sine', 'learned'))
 parser.add_argument('--hidden_dim', default=512, type=int)
+parser.add_argument('--strategy_step', default=10000, type=int)
 
 args = parser.parse_args()
 
@@ -41,7 +42,7 @@ logging.basicConfig(
     level=logging.INFO,  
     format='%(asctime)s - %(levelname)s - %(message)s', 
 )
-logging.info(f"Run the strategy with 25,000 steps")
+logging.info(f"Run the strategy with {args.strategy_step} steps")
 
 def train_transform():
     return transforms.Compose([
@@ -156,7 +157,7 @@ print("decoder is:", type(StyTR.decoder))
 print("decoder repr:", StyTR.decoder)
 
 for i in tqdm(range(args.max_iter)):
-    lambda_gan = min(0.01, i / 25000 * 0.01)
+    lambda_gan = min(0.01, i / args.strategy_step * 0.01)
     if i < 1e4:
         warmup_learning_rate(optimizer, i)
     else:
@@ -202,7 +203,7 @@ for i in tqdm(range(args.max_iter)):
     loss.backward()
     optimizer.step()
 
-    if i % 1000 == 0 or i in [100, 200, 300, 400, 500, 600, 700, 800, 900]:
+    if i % 1000 == 0:
         output_name = f'{args.save_dir}/test/{i}.jpg'
         with torch.no_grad():
             out_vis = torch.clamp(out, 0, 1).detach().cpu()
