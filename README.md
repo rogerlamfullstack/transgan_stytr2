@@ -9,8 +9,8 @@ Authors: [TUNG-THIEN LAM](https://github.com/rogerlamfullstack), NAEEM UL ISLAM,
 * tqdm  <br> 
 
 
-### Training  
-# Pretrained Models
+# Training  
+## Pretrained Models
 
 Download the pretrained models from the following links:
 
@@ -26,9 +26,9 @@ Place all downloaded files into the `./pretrain/` directory.
 
 ------------------------------------------------------------------------
 
-# Datasets
+## Datasets
 
-## Style Dataset
+### Style Dataset
 
 We use WikiArt collected from https://www.wikiart.org/.
 
@@ -37,7 +37,7 @@ Analytical Cubism, Early Renaissance, Fauvism, High Renaissance,
 Mannerism, Naive Art, New Realism, Northern Renaissance, Pointillism,
 Pop Art, Rococo, and Synthetic Cubism.
 
-## Content Dataset
+### Content Dataset
 
 We use the COCO 2014 train split from the COCO dataset:
 https://cocodataset.org/#download
@@ -46,14 +46,14 @@ https://cocodataset.org/#download
 python3.10 train.py train_test_example_10000 --style_dir datasets/style --content_dir dataset/train2014 --save_dir output --batch_size 2 --strategy_step 10000
 ```
 
-### Testing 
-## Test with Image
+## Testing 
+### Test with Image
 Generate stylized images using the content and style images as input:
 ```
 python test.py  --content_dir input/content/ --style_dir input/style/    --output out
 ```
 
-## Test with Metrics
+### Test with Metrics
 Evaluate the generated images using SSIM, PSNR, and LPIPS:
 ```
 python3.10 test_with_metrics.py  --content_dir input/content/ --style_dir input/style/
